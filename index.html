@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#101b1a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="PX JUDO" />
+<title>PX JUDO · Kalkulačka</title>
+<style>
+:root {color-scheme:dark;--orange:#ff9500;--dark:#2c2c2e;--light:#5c5c5f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif;overscroll-behavior:none}
+body{display:flex;justify-content:center}
+.app{height:100dvh;min-height:430px;width:100%;max-width:510px;display:flex;flex-direction:column;padding: max(env(safe-area-inset-top),14px) clamp(14px,4vw,26px) max(env(safe-area-inset-bottom),16px);overflow:hidden}
+.toolbar{display:flex;justify-content:space-between;align-items:center;flex:none}
+.tool{width:clamp(44px,12vw,56px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:#1d1d1f;border:1px solid #353538;color:white;cursor:pointer}
+.tool svg{width:53%;height:53%;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.screen{flex:1;min-height:90px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;padding:10px 5px 17px;overflow:hidden}
+.expression{font-size:clamp(14px,3.8vw,19px);color:#999;min-height:1.3em;text-align:right;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.display{font-weight:300;font-variant-numeric:tabular-nums;letter-spacing:-.04em;line-height:1.15;font-size:clamp(58px,19vw,98px);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:clip;text-align:right}
+.keys{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(8px,2.1vw,12px);flex:none}
+.key{appearance:none;border:0;border-radius:50%;width:100%;aspect-ratio:1;min-width:0;display:grid;place-items:center;background:var(--dark);color:white;font:400 clamp(29px,9vw,45px)/1 -apple-system,BlinkMacSystemFont,sans-serif;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:background .11s,transform .11s}
+.key:active{background:#777;transform:scale(.96)}
+.key.action{background:var(--light)}.key.action:active{background:#929295}
+.key.op{background:var(--orange);font-size:clamp(38px,11vw,56px)}.key.op:active{background:#ffc16e}
+.key.op.selected{color:var(--orange);background:#fff}
+.key svg{width:51%;height:51%;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;fill:none}
+.key.small{font-size:clamp(26px,8.5vw,41px)}
+.overlay{position:fixed;inset:0;background:#000e;z-index:3;display:none;flex-direction:column;padding:max(env(safe-area-inset-top),24px) 24px max(env(safe-area-inset-bottom),24px)}
+.overlay.open{display:flex}
+.overlay header{display:flex;justify-content:space-between;align-items:center}
+.overlay h2{margin:0;font-size:26px}.close{border:none;background:#333;border-radius:22px;color:white;font-size:17px;padding:8px 16px}
+.history{overflow:auto;flex:1;margin-top:22px}.entry{border-bottom:1px solid #333;text-align:right;padding:14px 0;cursor:pointer}.entry .expr{font-size:17px;color:#999}.entry .result{font-size:30px}.empty{color:#999;text-align:center;margin-top:24vh}
+.history-footer{background:transparent;border:0;color:#ff9500;font-size:18px;padding:16px;align-self:flex-end}
+@media(min-width:650px){.app{height:min(100dvh,900px);padding-top:30px;padding-bottom:28px}}
+@media(max-height:610px){.app{padding-top:8px;padding-bottom:8px}.tool{width:38px}.screen{min-height:42px;padding-bottom:7px}.display{font-size:clamp(45px,13vh,70px)}.keys{gap:6px}.key{aspect-ratio:auto;height:min(15vh,75px)}}
+
+/* PX JUDO — vlastní judistický motiv, bez externích souborů */
+:root{--orange:#c52935;--dark:#243432;--light:#65736d}
+html,body{background:#101b1a}
+.app{position:relative;background:radial-gradient(ellipse at 50% 12%,#213c37 0%,#101b1a 52%,#0b1313 100%)}
+.app:before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#fff 0 47%,#bc2532 47% 100%);opacity:.95}
+.toolbar{position:relative;z-index:1}
+.tool{background:#172723;border-color:#40504b}
+.tool:active{background:#41534c}
+.brand{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;white-space:nowrap;pointer-events:none;display:flex;align-items:center;gap:7px}
+.brand .gi{font-size:clamp(21px,5.5vw,28px);line-height:1}
+.brand strong{font-weight:900;font-size:clamp(15px,4.1vw,20px);letter-spacing:.17em;color:#f1f5f1}
+.brand small{font-size:10px;letter-spacing:.23em;color:#c5d3cc;display:block;margin-top:1px}
+.screen{position:relative}
+.screen:before{content:"柔道";position:absolute;left:7px;bottom:22px;color:#d9e3dc;opacity:.16;font-size:clamp(19px,7vw,34px);font-weight:700;letter-spacing:.13em}
+.expression{color:#b7c7be}
+.key{background:linear-gradient(155deg,#31413e,#22312e);box-shadow:inset 0 1px 1px #ffffff1a,0 2px 5px #0003}
+.key:active{background:#546c64}
+.key.action{background:linear-gradient(160deg,#7b8982,#596a62);color:#fff}
+.key.action:active{background:#9ca9a1}
+.key.op{background:linear-gradient(155deg,#e0474f,#bd2634);color:white;box-shadow:inset 0 1px 1px #ffaaa93a,0 2px 6px #0005}
+.key.op:active{background:#ee7375}
+.key.op.selected{background:#fff;color:#b92834}
+.key[data-k="equals"]{background:linear-gradient(155deg,#f8faf6,#ccd8d0);color:#932b34;font-weight:700}
+.key[data-k="equals"]:active{background:#fff}
+.belt{display:flex;align-items:center;gap:7px;justify-content:center;margin:8px auto 3px;color:#aebeb3;font-size:10px;letter-spacing:.17em;text-transform:uppercase;flex:none}
+.belt:before,.belt:after{content:"";height:4px;width:clamp(40px,13vw,80px);background:#f4f3ed;box-shadow:0 4px 0 #b42b35}
+.overlay{background:#101b1af7}.close{background:#33433e}.history-footer{color:#ed6770}
+@media(max-height:610px){.belt{margin:2px auto;font-size:8px}.brand small{display:none}}
+</style>
+</head>
+<body>
+<main class="app" aria-label="PX JUDO Kalkulačka">
+<div class="toolbar">
+<button class="tool" id="historyButton" aria-label="Historie výpočtů"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4"/><path d="M12 6v6l4 2"/></svg></button>
+<div class="brand" aria-label="PX JUDO"><span class="gi" aria-hidden="true">🥋</span><span><strong>PX JUDO</strong><small>KALKULAČKA</small></span></div>
+<button class="tool" id="copyButton" aria-label="Kopírovat výsledek" title="Kopírovat výsledek"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button>
+</div>
+<div class="screen" role="status" aria-live="polite"><div class="expression" id="expression"></div><div class="display" id="display">0</div></div>
+<div class="keys" id="keys">
+<button class="key action" data-k="back" aria-label="Smazat poslední znak"><svg viewBox="0 0 24 24"><path d="M9 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H9L2 12z"/><path d="m12 9 6 6m0-6-6 6"/></svg></button>
+<button class="key action small" data-k="clear">AC</button>
+<button class="key action" data-k="percent">%</button>
+<button class="key op" data-k="divide">÷</button>
+<button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button><button class="key op" data-k="multiply">×</button>
+<button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button><button class="key op" data-k="subtract">−</button>
+<button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button><button class="key op" data-k="add">+</button>
+<button class="key" data-k="sign">+/−</button><button class="key" data-k="0">0</button><button class="key" data-k="decimal">,</button><button class="key op" data-k="equals">=</button>
+</div>
+<div class="belt" aria-hidden="true">柔道 • JUDO</div>
+</main>
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Historie výpočtů"><header><h2>Historie</h2><button class="close" id="closeHistory">Hotovo</button></header><div class="history" id="history"></div><button class="history-footer" id="clearHistory">Smazat historii</button></div>
+<script>
+(()=>{'use strict';
+const display=document.getElementById('display'), expression=document.getElementById('expression');
+let current='0',previous=null,operator=null,waiting=false,justEvaluated=false,lastOperand=null,lastOperator=null;
+const symbols={add:'+',subtract:'−',multiply:'×',divide:'÷'};
+const fmt = s => {
+ if(s==='Error')return 'Chyba';
+ let n=Number(s);if(!Number.isFinite(n))return 'Chyba';
+ let negative=s.startsWith('-')?'-':'';let a=s.replace(/^-/,'').split('.');
+ let left=a[0].replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0');return negative+left+(a.length>1?','+a[1]:'');
+};
+function fit(){display.textContent=fmt(current);display.style.fontSize='';let size=parseFloat(getComputedStyle(display).fontSize);const max=display.parentElement.clientWidth-10;while(display.scrollWidth>max&&size>30){size-=2;display.style.fontSize=size+'px'}}
+function render(){fit();expression.textContent=previous!==null&&operator?fmt(String(previous))+' '+symbols[operator]:(justEvaluated&&lastOperator?'=':'');document.querySelectorAll('.key.op').forEach(b=>b.classList.toggle('selected',!!operator&&waiting&&b.dataset.k===operator))}
+function tidy(n){if(!Number.isFinite(n))return 'Error';if(Math.abs(n)>1e14)return String(Number(n.toPrecision(9)));return String(Number(n.toPrecision(12)))}
+function compute(a,b,op){switch(op){case 'add':return a+b;case 'subtract':return a-b;case 'multiply':return a*b;case 'divide':return b===0?NaN:a/b}return b}
+function inputDigit(d){if(current==='Error')current='0';if(waiting||justEvaluated){current=d;waiting=false;justEvaluated=false;if(!operator)previous=null}else if(current==='0')current=d;else if(current==='-0')current='-'+d;else if(current.replace(/[^0-9]/g,'').length<15)current+=d;render()}
+function decimal(){if(current==='Error'){current='0'}if(waiting||justEvaluated){current='0.';waiting=false;justEvaluated=false;if(!operator)previous=null}else if(!current.includes('.'))current+='.';render()}
+function operation(op){if(current==='Error')return;if(previous!==null&&operator&&!waiting){const r=tidy(compute(previous,Number(current),operator));if(r==='Error'){current=r;previous=null;operator=null;render();return}current=r}
+ previous=Number(current);operator=op;waiting=true;justEvaluated=false;render()}
+let records=[];try{records=JSON.parse(localStorage.getItem('px_judo_calc_history')||'[]');if(!Array.isArray(records))records=[]}catch(e){}
+function saveHistory(exp,res){records.unshift({exp,res});records=records.slice(0,100);try{localStorage.setItem('px_judo_calc_history',JSON.stringify(records))}catch(e){}}
+function equals(){if(current==='Error')return;if(operator&&previous!==null){let b=waiting?previous:Number(current),exp=fmt(String(previous))+' '+symbols[operator]+' '+fmt(String(b));let r=tidy(compute(previous,b,operator));if(r!=='Error')saveHistory(exp,fmt(r));current=r;lastOperand=b;lastOperator=operator;previous=null;operator=null;waiting=false;justEvaluated=true;render();expression.textContent=exp+' ='}else if(lastOperator&&lastOperand!==null){let a=Number(current),exp=fmt(current)+' '+symbols[lastOperator]+' '+fmt(String(lastOperand));let r=tidy(compute(a,lastOperand,lastOperator));if(r!=='Error')saveHistory(exp,fmt(r));current=r;justEvaluated=true;render();expression.textContent=exp+' ='}}
+function action(k){if(/^\d$/.test(k)){inputDigit(k);return}if(symbols[k]){operation(k);return}switch(k){case 'decimal':decimal();return;case 'equals':equals();return;case 'clear':current='0';previous=null;operator=null;waiting=false;justEvaluated=false;lastOperator=null;lastOperand=null;break;case 'back':if(current==='Error'||waiting||justEvaluated){current='0';waiting=false;justEvaluated=false}else{current=current.length<=1||current.length===2&&current.startsWith('-')?'0':current.slice(0,-1)}break;case 'sign':if(current!=='0'&&current!=='Error')current=current.startsWith('-')?current.slice(1):'-'+current;break;case 'percent':if(current!=='Error')current=tidy(Number(current)/100);break;}render()}
+document.getElementById('keys').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(b){action(b.dataset.k);if(navigator.vibrate)navigator.vibrate(7)}});
+document.addEventListener('keydown',e=>{if(document.getElementById('overlay').classList.contains('open')){if(e.key==='Escape')closeHistory();return}const map={'/':'divide','*':'multiply','-':'subtract','+':'add','Enter':'equals','=':'equals','Backspace':'back','Escape':'clear','Delete':'clear','%':'percent','.':'decimal',',':'decimal'};let k=map[e.key]??( /^[0-9]$/.test(e.key)?e.key:null);if(k){e.preventDefault();action(k)}});
+const overlay=document.getElementById('overlay'),history=document.getElementById('history');
+function openHistory(){history.replaceChildren();if(!records.length){const div=document.createElement('div');div.className='empty';div.textContent='Zatím žádné výpočty';history.append(div)}else records.forEach(item=>{const row=document.createElement('div');row.className='entry';let x=document.createElement('div'),r=document.createElement('div');x.className='expr';r.className='result';x.textContent=item.exp;r.textContent=item.res;row.append(x,r);row.addEventListener('click',()=>{current=String(Number(item.res.replace(/\u00a0/g,'').replace(',','.')));previous=null;operator=null;waiting=false;justEvaluated=false;render();closeHistory()});history.append(row)});overlay.classList.add('open')}
+function closeHistory(){overlay.classList.remove('open')}
+document.getElementById('historyButton').onclick=openHistory;document.getElementById('closeHistory').onclick=closeHistory;document.getElementById('clearHistory').onclick=()=>{records=[];try{localStorage.removeItem('px_judo_calc_history')}catch(e){}openHistory()};
+document.getElementById('copyButton').onclick=async()=>{try{await navigator.clipboard.writeText(current);const b=document.getElementById('copyButton');b.style.color='#ff9500';setTimeout(()=>b.style.color='',700)}catch(e){alert('Pro kopírování otevři aplikaci přes HTTPS.')}};
+window.addEventListener('resize',fit);render();
+})();
+</script>
+</body>
+</html>
